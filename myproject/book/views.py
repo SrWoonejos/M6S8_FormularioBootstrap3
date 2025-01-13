@@ -1,5 +1,7 @@
 from django.shortcuts import render, redirect
 from .forms import BookForm
+from django.contrib.auth.views import LoginView, LogoutView
+from .forms import CustomAuthenticationForm
 
 def input_book(request):
     if request.method == 'POST':
@@ -10,3 +12,11 @@ def input_book(request):
     else:
         form = BookForm()
     return render(request, 'book/inputbook.html', {'form': form})
+
+class CustomLoginView(LoginView):
+    template_name = 'autenticacion/login.html'
+    redirect_authenticated_user = True
+    authentication_form = CustomAuthenticationForm
+
+class CustomLogoutView(LogoutView):
+    template_name = 'autenticacion/logout.html'
