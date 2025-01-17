@@ -1,19 +1,53 @@
+from django.http import HttpRequest
 from django.shortcuts import render, redirect
-from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
-from django.contrib.auth import login
+from django.contrib.auth import login, logout, authenticate
 
-def registro(request):
-    """Vista para registrar nuevos usuarios."""
+from .models import Usuario
+
+from .forms import RegisterForm, LoginForm
+
+
+def registroView(request: HttpRequest):
+    """Vista para registrar un nuevo usuario."""
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = RegisterForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            login(request, user)  # Inicia sesión automáticamente después del registro
-            messages.success(request, 'Tu cuenta ha sido creada exitosamente.')
-            return redirect('inicio')  # Redirige a una página de inicio después del registro
+            form.save()
+            messages.success(request, "Registro exitoso. ¡Bienvenido!")
+            return redirect('login') 
         else:
-            messages.error(request, 'Por favor corrige los errores en el formulario.')
+            if 'email' in form.errors:
+                messages.error(request, "Este correo ya está en uso.")
+            else:
+                messages.error(request, "Hubo un error en el registro. Por favor, corrige los errores.")
     else:
-        form = UserCreationForm()
+        form = RegisterForm()
     return render(request, 'autenticacion/registro.html', {'form': form})
+
+def loginView(request: HttpRequest):
+    """Vista para iniciar sesión."""
+    if request.method == 'POST':
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+            #hay un problema aquí
+            user = Usuario.objects.get(username=username, password=password)
+            print(authenticate(request, username=username))
+            if user is not None:
+                login(request, user)
+                messages.success(request, '¡Bienvenido de nuevo!')
+        elif 'user' in form.cleaned_data:
+            messages.error(request, 'Error de credenciales.')
+    else:
+        form = LoginForm()
+
+    return render(request, 'autenticacion/login.html', {'form': form})
+
+
+def logoutView(request: HttpRequest):
+    """Vista para cerrar sesión."""
+    logout(request)
+    messages.success(request, '¡Has cerrado sesión exitosamente!')
+    return render(request, 'autenticacion/logout.html')

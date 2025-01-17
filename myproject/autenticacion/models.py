@@ -2,8 +2,8 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 class Usuario(AbstractUser):
-    """Extiende el modelo de usuario de Django para incluir campos personalizados."""
     email = models.EmailField(unique=True, verbose_name="Correo electrónico")
+
 
     # Sobrescribe los campos problemáticos con related_name personalizado
     groups = models.ManyToManyField(
@@ -20,6 +20,5 @@ class Usuario(AbstractUser):
         help_text="Specific permissions for this user.",
         verbose_name="user permissions",
     )
-
     def __str__(self):
-        return self.username
+        return self.email
